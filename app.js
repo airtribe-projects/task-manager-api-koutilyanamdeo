@@ -19,8 +19,8 @@ app.get('/tasks/:id', (req, res) => {
 });
 
 app.post('/tasks', (req, res) => {
-    if (!req.body ) {
-        return res.status(400).send('Task fields are required');
+    if (!req.body && !req.body.title && !req.body.description && !req.body.completed) {
+        return res.status(400).send('Task title,description,completed fields are required');
     }
     const newTask = req.body;
     newTask.id = inMemoryDB.users.length + 1; // Assign a new ID
