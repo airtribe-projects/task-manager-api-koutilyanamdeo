@@ -11,8 +11,8 @@ app.get('/tasks', (req, res) => {
         console.log(completed);
 
     if (completed !== undefined) {
-        const isCompleted = completed.toLowerCase() === 'true';
-        const filteredTasks = inMemoryDB.users.filter(task => task.completed === isCompleted);
+        const isCompletedFilter = completed.toLowerCase() === 'true';
+        const filteredTasks = inMemoryDB.users.filter(task => task.completed === isCompletedFilter);
         return res.status(200).send(filteredTasks); 
     }else if (title || description) {
         const filteredTasks = inMemoryDB.users.filter(task => {
@@ -21,7 +21,7 @@ app.get('/tasks', (req, res) => {
         return res.status(200).send(filteredTasks);
     }
     if (inMemoryDB.users.length === 0) {
-        return res.status(404).send('No tasks found');
+        return res.status(204).send('No Content'); // No content to send back
     }
     res.status(200).send(inMemoryDB.users);
 });
@@ -49,10 +49,11 @@ app.get('/tasks/priority/:level', (req, res) => {
 });
 
 app.post('/tasks', (req, res) => {
+    
     if (!req.body ) {
         return res.status(404).send('Task title,description,completed fields are required');
     }else if(!req.body.title || !req.body.description ) {
-        return res.status(400).send('Task title,description,completed fields are required');
+        return res.status(400).send('Task title,description fields are required');
     } else if (typeof req.body.completed !== 'boolean') {
         return res.status(400).send('Task completed field must be a boolean');
     }
@@ -62,7 +63,7 @@ app.post('/tasks', (req, res) => {
     const newTask = req.body;
     newTask.id = inMemoryDB.users.length + 1; // Assign a new ID
     newTask.creationDate = new Date().toISOString();
-    newTask.priority = 'low'; // Default priority
+    newTask.priority = !newTask.priority ?  'low' : newTask.priority.toLowerCase(); // Default priority
     inMemoryDB.users.push(newTask);
     inMemoryDB.users.sort((a, b) => new Date(a.creationDate) - new Date(b.creationDate)); // Sort by creation date
     res.status(200).send(newTask);
@@ -70,6 +71,9 @@ app.post('/tasks', (req, res) => {
 
 app.put('/tasks/:id', (req, res) => {
     const taskId = parseInt(req.params.id);
+    if(!req.body){
+        return res.status(400).send('fields are required for updation');
+    }
     const taskIndex = inMemoryDB.users.findIndex(t => t.id === taskId);
     if (taskIndex === -1) {
         return res.status(404).send('Task id not found');
@@ -87,7 +91,7 @@ app.delete('/tasks/:id', (req, res) => {
         return res.status(404).send('Task id not found');
     }
     inMemoryDB.users.splice(taskIndex, 1);
-    res.status(200).send("successfully deleted"); // No content to send back
+    res.status(200).send("Task Successfully Deleted"); // No content to send back
 });
 app.listen(port, (err) => {
     if (err) {
